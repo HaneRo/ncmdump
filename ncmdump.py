@@ -2,6 +2,10 @@
 __author__ = 'qyh'
 __date__ = '2018/10/16 9:22'
 
+import sys
+from mutagen.flac import FLAC, Picture
+from mutagen import File
+from mutagen.id3 import APIC
 import binascii
 import struct
 import base64
@@ -75,11 +79,26 @@ def dump(file_path):
         m.write(chunk)
     m.close()
     f.close()
+    if (meta_data['format']=="mp3"):
+        audio = File(file_name)
+        audio.tags.add(APIC(mime="image/jpeg", type=3, desc=u"Cover", data=image_data))
+        audio.save()
+    if (meta_data['format']=="flac"):
+        picture = Picture()
+        picture.type = 3
+        picture.desc = "Cover"
+        picture.mime = "image/jpeg"
+        picture.data = image_data
+        audio = FLAC(file_name)
+        audio.add_picture(picture)
+        audio.save()
     return file_name
 
 
 if __name__ == '__main__':
-    file_list = ['陈芳语 - 爱你.ncm', '李翊君 - 雨蝶.ncm']
-    for file in file_list:
-        filepath = "F:\CloudMusic\\"+file
-        dump(filepath)
+    for argv in sys.argv:
+        if (os.path.exists(argv) & argv.endswith(".ncm")):
+            dump(argv)
+            print(argv+ " finish")
+        else:
+            print(argv + " is not ncm")
